@@ -1,102 +1,87 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import { UNSPLASH_KEY } from "./config";
 
-
-function App() {
+export default function App() {
   const [time, setTime] = useState("");
-  const [greeting, setGreeting] = useState("");
-  const [bgImage, setBgImage] = useState(
-  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"
-);
-const BACKGROUNDS = [
-  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
-  "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
-  "https://images.unsplash.com/photo-1491553895911-0055eca6402d",
-  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
-  "https://images.unsplash.com/photo-1470770841072-f978cf4d019e",
-];
-
+  const [bgLoaded, setBgLoaded] = useState(false);
 
   useEffect(() => {
-  const loadBackground = async () => {
-    const today = new Date().toDateString();
-    const savedDate = localStorage.getItem("bg-date");
+    const updateTime = () => {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, "0");
+      const m = String(now.getMinutes()).padStart(2, "0");
+      const s = String(now.getSeconds()).padStart(2, "0");
+      setTime(`${h}:${m}:${s}`);
+    };
 
-    if (savedDate === today) {
-      setBgImage(localStorage.getItem("bg-image"));
-      return;
-    }
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
+useEffect(() => {
+  const today = new Date().toDateString();
+  const saved = JSON.parse(localStorage.getItem("daily-bg") || "{}");
+
+  if (saved.date === today && saved.url) {
+    document.documentElement.style.setProperty(
+      "--bg-url",
+      `url('${saved.url}')`
+    );
+    setBgLoaded(true);
+    return;
+  }
+
+  const fetchPhoto = async () => {
     try {
       const res = await fetch(
-        "https://api.unsplash.com/photos/random?query=nature&orientation=landscape",
+        `https://api.unsplash.com/photos/random?orientation=landscape&query=nature`,
         {
           headers: {
-            Authorization: `Client-ID ${UNSPLASH_KEY}`,
+            Authorization: `Client-ID ${import.meta.env.VITE_UNSPLASH_KEY}`,
           },
         }
       );
 
       const data = await res.json();
-
       const imageUrl = data.urls.full;
 
-      localStorage.setItem("bg-date", today);
-      localStorage.setItem("bg-image", imageUrl);
+      localStorage.setItem(
+        "daily-bg",
+        JSON.stringify({ date: today, url: imageUrl })
+      );
 
-      setBgImage(imageUrl);
+      document.documentElement.style.setProperty(
+        "--bg-url",
+        `url('${imageUrl}')`
+      );
+
+      setBgLoaded(true);
     } catch (err) {
-      console.error("Unsplash error:", err);
+      console.error("Unsplash error", err);
     }
   };
 
-  loadBackground();
-}, []);
-useEffect(() => {
-  const updateTimeAndGreeting = () => {
-    const now = new Date();
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
-    const seconds = now.getSeconds();                                                             
-    const formattedTime = `${hours.toString().padStart(2, "0", "0")}:${minutes
-      .toString()
-      .padStart(2, "0", "0")}:${seconds.toString().padStart(2, "0", "0")}`;
-    setTime(formattedTime);
-
-    let greet = "";
-    if (hours < 12) {
-      greet = "Good Morning";
-    } else if (hours < 18) {
-      greet = "Good Afternoon";
-    } else {
-      greet = "Good Evening";
-    }
-    setGreeting(greet);
-  };
-
-  updateTimeAndGreeting();
-  const intervalId = setInterval(updateTimeAndGreeting, 60000);
-
-  return () => clearInterval(intervalId);
+  fetchPhoto();
 }, []);
 
-return (
-  <div className="bg-wrapper">
+
+
+  return (
     <div
-      className="background bg-active"
-      style={{ backgroundImage: `url(${bgImage})` }}
-    />
+      className={`app ${bgLoaded ? "bg-visible" : ""}`}
+    >
+      <div className="overlay" />
 
-    <div className="overlay"></div>
+      <main className="center">
+        <h1 className="time">{time}</h1>
+        <h2 className="greeting">Good evening</h2>
 
-    <div className="container">
-      <h1 className="time">{time}</h1>
-      <h2 className="greeting">{greeting}</h2>
+        <div className="name" contentEditable spellCheck="false" />
+
+        <p className="question">What is your main focus for today?</p>
+        <input className="focus" type="text" placeholder="Enter your focus..." />
+      </main>
     </div>
-  </div>
-);
-
+  );
 }
-
-export default App;

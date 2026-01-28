@@ -1,86 +1,135 @@
-body {
-  background: #111;
-  color: white;
-  font-family: Inter, system-ui, sans-serif;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Inter", system-ui, sans-serif;
 }
 
-/* Fullscreen center */
-.container {
-  width: 100%;
+html,
+body,
+#root {
   height: 100%;
+}
 
+.app {
+  height: 100%;
+  background: #111;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Dark overlay for future background images */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1;
+}
+
+.center {
+  position: relative;
+  z-index: 2;
+
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 14px;
 
   text-align: center;
 }
 
-/* Time */
 .time {
-  font-size: 120px;
+  font-size: clamp(64px, 12vw, 120px);
   font-weight: 600;
-  letter-spacing: -2px;
-  line-height: 1;
-  margin: 0;
 }
 
-/* Greeting */
 .greeting {
-  margin-top: 12px;
   font-size: 28px;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+.name {
+  min-height: 32px;
+  font-size: 22px;
+  opacity: 0.85;
+  outline: none;
+  cursor: text;
+}
+
+.name:empty::before {
+  content: "Enter your name";
+  opacity: 0.5;
+}
+
+.question {
+  margin-top: 18px;
+  font-size: 18px;
   opacity: 0.85;
 }
 
-.bg-wrapper {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
+.focus {
+  margin-top: 6px;
+  width: 320px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid white;
+  color: white;
+  font-size: 20px;
+  text-align: center;
+  outline: none;
 }
 
-/* Background layer */
-.background {
-  position: absolute;
-  inset: 0;
+.focus::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+.focus:focus {
+  border-color: #1e90ff;
+} 
 
+.app {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-
   opacity: 0;
-  transition: opacity 1.5s ease-in-out;
+  transition: opacity 1.2s ease-in-out;
 }
 
-/* Active background */
-.bg-active {
+.app.bg-visible {
+  opacity: 1;
+}
+@media (max-width: 480px) {
+  .time {
+    font-size: clamp(48px, 18vw, 80px);
+  }
+
+  .greeting {
+    font-size: 22px;
+  }
+
+  .name {
+    font-size: 18px;
+  }
+
+  .focus {
+    width: 240px;
+    font-size: 18px;
+  }
+} 
+
+.app {
+  background-image: var(--bg-url);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+
+.app.bg-visible {
   opacity: 1;
 }
 
-/* Overlay stays above background */
-.overlay {
-  position: absolute;
-  inset: 0;
-
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(6px);
-
-  z-index: 1;
-}
-
-/* Content above everything */
-.container {
-  position: relative;
-  z-index: 2;
-}
-
-
-/* Fade animation */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
